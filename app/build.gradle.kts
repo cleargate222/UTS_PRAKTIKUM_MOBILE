@@ -66,6 +66,12 @@ dependencies {
     implementation(libs.glide.core)
     annotationProcessor(libs.glide.compiler) // Penting: Tetap pakai annotationProcessor untuk Java
 
+    // Onboarding UI (Indicator)
+    implementation(libs.dotsindicator)
+
+    // Profile UI (Circular Image)
+    implementation(libs.circleimageview)
+
     // Testing (Sesuai Screenshot Anda)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
