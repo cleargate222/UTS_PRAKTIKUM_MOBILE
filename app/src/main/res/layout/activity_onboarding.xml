@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/primary">
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/layout_bottom" />
+
+    <!-- Indicator + Button -->
+    <LinearLayout
+        android:id="@+id/layout_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:layout_alignParentBottom="true">
+
+        <!-- Indicator -->
+        <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
+            android:id="@+id/dots_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:dotsColor="#80FFFFFF"
+            app:dotsSize="8dp"
+            app:selectedDotColor="@android:color/white" />
+
+        <!-- Button Next / Get Started -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_next"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Selanjutnya"
+            android:textSize="16sp"
+            style="@style/Widget.Material3.Button" />
+
+        <!-- Skip -->
+        <TextView
+            android:id="@+id/tv_skip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lewati"
+            android:textColor="#E0E7FF"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:padding="8dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
