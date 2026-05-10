@@ -1,8 +1,8 @@
 package com.example.factsphere.repository;
 
 import com.example.factsphere.model.Fact;
-import com.example.factsphere.model.NinjaFactResponse;
 import com.example.factsphere.model.WikipediaResponse;
+import com.example.factsphere.model.WikipediaSearchResponse;
 import com.example.factsphere.network.RetrofitClient;
 
 import java.util.ArrayList;
@@ -21,51 +21,12 @@ public class FactRepository {
     }
 
     public interface ArticleCallback {
-        void onSuccess(String longArticle, String imageUrl);
+        void onSuccess(String shortFact, String longArticle, String imageUrl, String articleUrl);
         void onFailure(String errorMessage);
     }
 
-    public void getRandomFacts(int limit, FactCallback callback) {
-        RetrofitClient.getFactsService()
-                .getRandomFacts(limit)
-                .enqueue(new Callback<List<NinjaFactResponse>>() {
-                    @Override
-                    public void onResponse(Call<List<NinjaFactResponse>> call,
-                                           Response<List<NinjaFactResponse>> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            callback.onSuccess(mapToFacts(response.body(), "general"));
-                        } else {
-                            callback.onFailure("Gagal ambil data: " + response.code());
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<List<NinjaFactResponse>> call, Throwable t) {
-                        callback.onFailure("Error: " + t.getMessage());
-                    }
-                });
-    }
-
-    public void getFactsByCategory(String category, int limit, FactCallback callback) {
-        RetrofitClient.getFactsService()
-                .getFactsByCategory(category, limit)
-                .enqueue(new Callback<List<NinjaFactResponse>>() {
-                    @Override
-                    public void onResponse(Call<List<NinjaFactResponse>> call,
-                                           Response<List<NinjaFactResponse>> response) {
-                        if (response.isSuccessful() && response.body() != null) {
-                            callback.onSuccess(mapToFacts(response.body(), category));
-                        } else {
-                            callback.onFailure("Gagal ambil kategori: " + response.code());
-                        }
-                    }
-                    @Override
-                    public void onFailure(Call<List<NinjaFactResponse>> call, Throwable t) {
-                        callback.onFailure("Error: " + t.getMessage());
-                    }
-                });
-    }
-
-    public void getLongArticle(String wikipediaTitle, ArticleCallback callback) {
+    // Ambil detail artikel (short fact + long article + thumbnail + link)
+    public void getArticleDetail(String wikipediaTitle, ArticleCallback callback) {
         RetrofitClient.getWikiService()
                 .getArticleSummary(wikipediaTitle)
                 .enqueue(new Callback<WikipediaResponse>() {
@@ -74,9 +35,23 @@ public class FactRepository {
                                            Response<WikipediaResponse> response) {
                         if (response.isSuccessful() && response.body() != null) {
                             WikipediaResponse wiki = response.body();
+
+                            String shortFact = wiki.getExtract() != null
+                                    ? wiki.getExtract().substring(0, Math.min(200, wiki.getExtract().length())) + "..."
+                                    : "Tidak ada deskripsi";
+
+                            String longArticle = wiki.getExtract() != null
+                                    ? wiki.getExtract()
+                                    : "Artikel tidak tersedia";
+
                             String imageUrl = (wiki.getThumbnail() != null)
                                     ? wiki.getThumbnail().getSource() : null;
-                            callback.onSuccess(wiki.getExtract(), imageUrl);
+
+                            String articleUrl = (wiki.getContentUrls() != null
+                                    && wiki.getContentUrls().getDesktop() != null)
+                                    ? wiki.getContentUrls().getDesktop().getPage() : null;
+
+                            callback.onSuccess(shortFact, longArticle, imageUrl, articleUrl);
                         } else {
                             callback.onFailure("Artikel tidak ditemukan");
                         }
@@ -88,22 +63,45 @@ public class FactRepository {
                 });
     }
 
-    private List<Fact> mapToFacts(List<NinjaFactResponse> responses, String category) {
+    // Search artikel Wikipedia
+    public void searchArticles(String query, int limit, FactCallback callback) {
+        RetrofitClient.getWikiService()
+                .searchArticles("query", "search", query, "json", 1, limit)
+                .enqueue(new Callback<WikipediaSearchResponse>() {
+                    @Override
+                    public void onResponse(Call<WikipediaSearchResponse> call,
+                                           Response<WikipediaSearchResponse> response) {
+                        if (response.isSuccessful() && response.body() != null
+                                && response.body().getQuery() != null) {
+                            List<Fact> facts = mapSearchToFacts(
+                                    response.body().getQuery().getSearch()
+                            );
+                            callback.onSuccess(facts);
+                        } else {
+                            callback.onFailure("Hasil pencarian kosong");
+                        }
+                    }
+                    @Override
+                    public void onFailure(Call<WikipediaSearchResponse> call, Throwable t) {
+                        callback.onFailure("Error: " + t.getMessage());
+                    }
+                });
+    }
+
+    // Helper: ubah SearchResult → Fact
+    private List<Fact> mapSearchToFacts(List<WikipediaSearchResponse.SearchResult> results) {
         List<Fact> facts = new ArrayList<>();
-        for (NinjaFactResponse r : responses) {
-            String text = r.getFact();
-            String[] words = text.split(" ");
-            StringBuilder titleBuilder = new StringBuilder();
-            for (int i = 0; i < Math.min(3, words.length); i++) {
-                titleBuilder.append(words[i]).append(" ");
-            }
+        if (results == null) return facts;
+        for (WikipediaSearchResponse.SearchResult r : results) {
+            // Hapus tag HTML dari snippet
+            String snippet = r.getSnippet().replaceAll("<[^>]*>", "");
             Fact fact = new Fact(
                     UUID.randomUUID().toString(),
-                    titleBuilder.toString().trim() + "...",
-                    text,
-                    category,
+                    r.getTitle(),
+                    snippet,
+                    "general",
                     null,
-                    null
+                    r.getTitle()
             );
             facts.add(fact);
         }
