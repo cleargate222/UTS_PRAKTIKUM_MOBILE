@@ -10,10 +10,10 @@ import java.util.List;
 
 public class FactRepository {
 
-    // Dummy data dulu, nanti diganti Retrofit dari Faqih
     public LiveData<List<Fact>> getAllFacts() {
         MutableLiveData<List<Fact>> data = new MutableLiveData<>();
 
+        // Dummy data, nanti diganti Retrofit dari Faqih
         List<Fact> dummyList = new ArrayList<>();
         dummyList.add(new Fact("1", "Black Hole",
                 "Black hole adalah daerah dengan gravitasi sangat kuat.",
@@ -38,28 +38,5 @@ public class FactRepository {
 
         data.setValue(dummyList);
         return data;
-    }
-
-    // Untuk search filtering
-    public LiveData<List<Fact>> searchFacts(String query) {
-        MutableLiveData<List<Fact>> result = new MutableLiveData<>();
-
-        getAllFacts().observeForever(facts -> {
-            if (facts == null) {
-                result.setValue(new ArrayList<>());
-                return;
-            }
-            List<Fact> filtered = new ArrayList<>();
-            String lowerQuery = query.toLowerCase();
-            for (Fact fact : facts) {
-                if (fact.getTitle().toLowerCase().contains(lowerQuery) ||
-                        fact.getCategory().toLowerCase().contains(lowerQuery)) {
-                    filtered.add(fact);
-                }
-            }
-            result.setValue(filtered);
-        });
-
-        return result;
     }
 }
