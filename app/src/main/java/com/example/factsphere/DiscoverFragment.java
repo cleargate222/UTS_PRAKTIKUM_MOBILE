@@ -17,10 +17,10 @@ public class DiscoverFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_discover, container, false);
 
-        RecyclerView recyclerCategory = view.findViewById(R.id.recycler_category);
+        RecyclerView recyclerCategory = view.findViewById(R.id.recycler_view);
         if (recyclerCategory != null) {
             recyclerCategory.setLayoutManager(new GridLayoutManager(getContext(), 2));
-            // TODO: nanti tambahkan adapter kategori
+            // TODO: add category adapter
         }
 
         return view;

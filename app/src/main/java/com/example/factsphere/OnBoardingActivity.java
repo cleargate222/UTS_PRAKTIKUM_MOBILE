@@ -2,12 +2,13 @@ package com.example.factsphere;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.button.MaterialButton;
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OnBoardingActivity extends AppCompatActivity {
 
@@ -27,8 +28,26 @@ public class OnBoardingActivity extends AppCompatActivity {
         btnNext = findViewById(R.id.btn_next);
         tvSkip = findViewById(R.id.tv_skip);
 
+        // Setup Data Onboarding
+        List<OnBoardingItem> onBoardingItems = new ArrayList<>();
+        onBoardingItems.add(new OnBoardingItem(
+                R.drawable.home,
+                "Selamat Datang di FactSphere",
+                "Temukan berbagai fakta menarik dan unik dari seluruh penjuru dunia."
+        ));
+        onBoardingItems.add(new OnBoardingItem(
+                R.drawable.quiz,
+                "Asah Pengetahuanmu",
+                "Uji wawasanmu dengan kuis-kuis yang menantang dan edukatif."
+        ));
+        onBoardingItems.add(new OnBoardingItem(
+                R.drawable.discovery,
+                "Eksplorasi Tanpa Batas",
+                "Jelajahi kategori fakta yang beragam mulai dari sains hingga sejarah."
+        ));
+
         // Setup Adapter Onboarding
-        OnBoardingAdapter adapter = new OnBoardingAdapter(this);
+        OnBoardingAdapter adapter = new OnBoardingAdapter(this, onBoardingItems);
         viewPager.setAdapter(adapter);
 
         // Hubungkan dengan Dots Indicator

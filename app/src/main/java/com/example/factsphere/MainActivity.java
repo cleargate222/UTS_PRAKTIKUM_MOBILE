@@ -34,7 +34,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_favorites) {
                 selectedFragment = new FavoritesFragment();
             }
-
+            else if (itemId == R.id.nav_profile) {
+                selectedFragment = new ProfileFragment();
+            }
             if (selectedFragment != null) {
                 replaceFragment(selectedFragment);
             }

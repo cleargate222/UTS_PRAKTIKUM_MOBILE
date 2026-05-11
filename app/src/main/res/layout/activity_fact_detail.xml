@@ -15,11 +15,18 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/primary"
-            app:titleTextColor="@android:color/white"
-            app:navigationIcon="@drawable/back" />
+            app:titleTextColor="@android:color/white"/>
+
+        <ImageView
+            android:id="@+id/iv_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/back"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Scrollable Content -->
+    <!-- Scroll Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -30,20 +37,20 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Gambar Besar -->
+            <!-- Gambar -->
             <ImageView
                 android:id="@+id/iv_detail_image"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
+                android:layout_height="260dp"
                 android:scaleType="centerCrop" />
 
-            <!-- Action Icons (Share & Save) -->
+            <!-- Action Icons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:paddingHorizontal="20dp"
-                android:paddingVertical="8dp"
+                android:paddingVertical="12dp"
                 android:gravity="end">
 
                 <ImageView
@@ -52,7 +59,7 @@
                     android:layout_height="48dp"
                     android:src="@drawable/ic_share"
                     android:padding="12dp"
-                    android:background="?attr/selectableItemBackgroundBorderless" />
+                    android:background="?attr/selectableItemBackgroundBorderless"/>
 
                 <ImageView
                     android:id="@+id/iv_save"
@@ -60,40 +67,40 @@
                     android:layout_height="48dp"
                     android:src="@drawable/simpan"
                     android:padding="12dp"
-                    android:background="?attr/selectableItemBackgroundBorderless" />
+                    android:background="?attr/selectableItemBackgroundBorderless"/>
             </LinearLayout>
 
-            <!-- Konten Teks -->
+            <!-- Teks Konten -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="20dp"
-                android:paddingBottom="100dp">
+                android:paddingBottom="120dp">
 
                 <TextView
                     android:id="@+id/tv_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="21sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
+                    android:lineSpacingExtra="6dp"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
                     android:id="@+id/tv_long_article"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="20dp"
                     android:textSize="15.5sp"
-                    android:lineSpacingExtra="7dp"
+                    android:lineSpacingExtra="8dp"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
             </LinearLayout>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Tombol Visit Source -->
+    <!-- Visit Source Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_visit_source"
         android:layout_width="match_parent"
@@ -101,6 +108,6 @@
         android:text="Visit Source"
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
-        style="@style/Widget.Material3.Button" />
+        style="@style/Widget.Material3.Button"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
