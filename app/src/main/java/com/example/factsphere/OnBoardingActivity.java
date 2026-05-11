@@ -31,17 +31,17 @@ public class OnBoardingActivity extends AppCompatActivity {
         // Setup Data Onboarding
         List<OnBoardingItem> onBoardingItems = new ArrayList<>();
         onBoardingItems.add(new OnBoardingItem(
-                R.drawable.home,
+                R.drawable.onboarding1,
                 "Selamat Datang di FactSphere",
                 "Temukan berbagai fakta menarik dan unik dari seluruh penjuru dunia."
         ));
         onBoardingItems.add(new OnBoardingItem(
-                R.drawable.quiz,
+                R.drawable.onboarding2,
                 "Asah Pengetahuanmu",
                 "Uji wawasanmu dengan kuis-kuis yang menantang dan edukatif."
         ));
         onBoardingItems.add(new OnBoardingItem(
-                R.drawable.discovery,
+                R.drawable.onboarding3,
                 "Eksplorasi Tanpa Batas",
                 "Jelajahi kategori fakta yang beragam mulai dari sains hingga sejarah."
         ));

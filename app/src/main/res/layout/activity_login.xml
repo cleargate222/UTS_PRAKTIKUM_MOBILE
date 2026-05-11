@@ -11,7 +11,7 @@
     <ImageView
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:src="@drawable/ic_launcher_foreground"
+        android:src="@drawable/logobiruya"
         android:layout_marginBottom="32dp"/>
 
     <TextView
@@ -77,6 +77,8 @@
         android:text="Login dengan Google"
         app:icon="@drawable/ic_google"
         app:iconGravity="textStart"
+        app:iconTint="@null"
+        app:iconSize="24dp"
         style="@style/Widget.Material3.Button.OutlinedButton"/>
 
     <TextView
