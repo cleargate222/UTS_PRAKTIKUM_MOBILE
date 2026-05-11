@@ -12,11 +12,11 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Splash tampil selama 2.8 detik
         new Handler().postDelayed(() -> {
-            Intent intent = new Intent(SplashActivity.this, OnBoardingActivity.class);
+            // Langsung ke Login untuk testing
+            Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
-        }, 2800);
+        }, 2000); // 2 detik
     }
 }

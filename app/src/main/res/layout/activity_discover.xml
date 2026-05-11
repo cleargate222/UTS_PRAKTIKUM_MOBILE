@@ -28,15 +28,45 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Search facts"
-            android:drawablePadding="12dp"/>
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="12dp"
+            android:textSize="16sp"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- RecyclerView (untuk Grid Kategori & Hasil Search) -->
+    <!-- RecyclerView (Grid Kategori & Hasil Search) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingHorizontal="8dp"
-        android:clipToPadding="false" />
+        android:paddingTop="4dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+    <!-- Empty State (opsional) -->
+    <LinearLayout
+        android:id="@+id/layout_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tidak ada hasil"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#666666"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Coba kata kunci lain"
+            android:textSize="14sp"
+            android:textColor="#999999"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
 
 </LinearLayout>

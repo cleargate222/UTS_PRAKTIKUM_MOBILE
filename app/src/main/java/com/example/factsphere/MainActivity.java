@@ -16,27 +16,28 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        // Set default fragment (Home)
-        replaceFragment(new HomeFragment());
+        // Default Fragment saat aplikasi dibuka
+        if (savedInstanceState == null) {
+            replaceFragment(new HomeFragment());
+        }
 
-        // Bottom Navigation Listener
+        // Bottom Navigation Click Listener
         bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;
 
-            int itemId = item.getItemId();
-
-            if (itemId == R.id.nav_home) {
+            if (item.getItemId() == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
-            } else if (itemId == R.id.nav_discover) {
+            } else if (item.getItemId() == R.id.nav_discover) {
                 selectedFragment = new DiscoverFragment();
-            } else if (itemId == R.id.nav_quiz) {
+            } else if (item.getItemId() == R.id.nav_quiz) {
                 selectedFragment = new QuizFragment();
-            } else if (itemId == R.id.nav_favorites) {
+            } else if (item.getItemId() == R.id.nav_favorites) {
                 selectedFragment = new FavoritesFragment();
             }
-            else if (itemId == R.id.nav_profile) {
+            else if (item.getItemId() == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
             }
+
             if (selectedFragment != null) {
                 replaceFragment(selectedFragment);
             }
