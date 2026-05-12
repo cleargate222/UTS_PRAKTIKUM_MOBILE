@@ -34,9 +34,12 @@ public class LoginActivity extends AppCompatActivity {
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Email dan Password tidak boleh kosong", Toast.LENGTH_SHORT).show();
             } else {
-                // TODO: Nanti dihubungkan dengan ViewModel Auth oleh Galank
-                Toast.makeText(this, "Login berhasil (Demo)", Toast.LENGTH_SHORT).show();
+                // Tampilkan loading sebentar jika perlu
+                Toast.makeText(this, "Login berhasil", Toast.LENGTH_SHORT).show();
+
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                // Tambahkan flag agar MainActivity bersih saat dibuka
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 finish();
             }

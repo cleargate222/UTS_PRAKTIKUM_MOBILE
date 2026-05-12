@@ -39,22 +39,25 @@ public class SearchViewModel extends AndroidViewModel {
 
         isSearching.setValue(true);
 
-        repository.getAllFacts().observeForever(facts -> {
-            if (facts == null) {
-                isSearching.postValue(false);
-                return;
+        // Gunakan method yang ada di Repository (searchArticles atau getAllFacts)
+        repository.searchArticles(query, 20, new FactRepository.FactCallback() {
+            @Override
+            public void onSuccess(List<Fact> facts) {
+                isSearching.setValue(false);
+                if (facts == null || facts.isEmpty()) {
+                    noResultMsg.setValue("Tidak ada hasil untuk \"" + query + "\"");
+                    searchResults.setValue(new ArrayList<>());
+                } else {
+                    noResultMsg.setValue(null);
+                    searchResults.setValue(facts);
+                }
             }
 
-            List<Fact> filtered = filterFacts(facts, query.trim());
-
-            if (filtered.isEmpty()) {
-                noResultMsg.postValue("Tidak ada hasil untuk \"" + query + "\"");
-            } else {
-                noResultMsg.postValue(null);
+            @Override
+            public void onFailure(String message) {
+                isSearching.setValue(false);
+                noResultMsg.setValue("Error: " + message);
             }
-
-            searchResults.postValue(filtered);
-            isSearching.postValue(false);
         });
     }
 
@@ -77,21 +80,19 @@ public class SearchViewModel extends AndroidViewModel {
     public void filterByCategory(String category) {
         isSearching.setValue(true);
 
-        repository.getAllFacts().observeForever(facts -> {
-            if (facts == null) {
-                isSearching.postValue(false);
-                return;
+        repository.searchArticles(category, 20, new FactRepository.FactCallback() {
+            @Override
+            public void onSuccess(List<Fact> facts) {
+                isSearching.setValue(false);
+                // Karena kita cari berdasarkan category sebagai query,
+                // hasil dari API biasanya sudah terfilter otomatis
+                searchResults.setValue(facts);
             }
 
-            List<Fact> filtered = new ArrayList<>();
-            for (Fact fact : facts) {
-                if (fact.getCategory().equalsIgnoreCase(category)) {
-                    filtered.add(fact);
-                }
+            @Override
+            public void onFailure(String message) {
+                isSearching.setValue(false);
             }
-
-            searchResults.postValue(filtered);
-            isSearching.postValue(false);
         });
     }
 

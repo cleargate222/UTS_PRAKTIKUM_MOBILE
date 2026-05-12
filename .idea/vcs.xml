@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="VcsDirectoryMappings">
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-=======
-    <mapping directory="" vcs="Git" />
->>>>>>> origin/feature/dikitlagi2
-=======
-    <mapping directory="$PROJECT_DIR$" vcs="Git" />
->>>>>>> origin/viewmodel-mvvm
-=======
-    <mapping directory="" vcs="Git" />
->>>>>>> origin/feature/fact-model
   </component>
 </project>
