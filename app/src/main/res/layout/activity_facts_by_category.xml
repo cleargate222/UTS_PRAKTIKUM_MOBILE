@@ -14,7 +14,7 @@
         android:background="@color/primary"
         app:title="Science"
         app:titleTextColor="@android:color/white"
-        app:navigationIcon="@drawable/ic_arrow_back" />
+         />
 
     <!-- RecyclerView Daftar Fakta -->
     <androidx.recyclerview.widget.RecyclerView
