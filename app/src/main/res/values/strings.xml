@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FactSphere</string>
+    <string name="category_science">Science</string>
+    <string name="fact_image_description">Fact Image</string>
 </resources>
