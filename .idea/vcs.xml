@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
 =======
     <mapping directory="" vcs="Git" />
@@ -10,5 +11,8 @@
 =======
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
 >>>>>>> origin/viewmodel-mvvm
+=======
+    <mapping directory="" vcs="Git" />
+>>>>>>> origin/feature/fact-model
   </component>
 </project>
