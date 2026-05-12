@@ -1,6 +1,7 @@
 package com.example.factsphere.viewmodel;
 
 import android.app.Application;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -65,25 +66,35 @@ public class FactViewModel extends AndroidViewModel {
 
     // Untuk Fact of the Day di Home
     public void loadRandomFact() {
-        isLoading.setValue(true);
+        // Cegah multiple call
+        if (Boolean.TRUE.equals(isLoading.getValue())) {
+            Log.d("FactViewModel", "Sedang loading, skip panggilan baru");
+            return;
+        }
 
-        // Gunakan searchArticles untuk mendapatkan LIST artikel
-        repository.searchArticles("Teknologi", 10, new FactRepository.FactCallback() {
+        isLoading.setValue(true);
+        Log.d("FactViewModel", "🚀 loadRandomFact dipanggil");
+
+        List<String> trendingTopics = new ArrayList<>();
+        trendingTopics.add("Indonesia");
+        trendingTopics.add("Matahari");
+        trendingTopics.add("Dinosaurus");
+        trendingTopics.add("Gunung_Everest");
+        trendingTopics.add("Albert_Einstein");
+
+        repository.getMultipleArticles(trendingTopics, new FactRepository.FactCallback() {
             @Override
             public void onSuccess(List<Fact> facts) {
+                Log.d("FactViewModel", "✅ SUCCESS: " + (facts != null ? facts.size() : 0) + " facts");
                 isLoading.postValue(false);
                 if (facts != null && !facts.isEmpty()) {
-                    // Kirim list ke HomeFragment melalui factList
                     factList.postValue(facts);
-
-                    // Set satu fakta acak untuk fitur 'Fact of the Day'
-                    int index = (int) (Math.random() * facts.size());
-                    randomFact.postValue(facts.get(index));
                 }
             }
 
             @Override
             public void onFailure(String message) {
+                Log.e("FactViewModel", "❌ FAILED: " + message);
                 isLoading.postValue(false);
                 errorMessage.postValue(message);
             }

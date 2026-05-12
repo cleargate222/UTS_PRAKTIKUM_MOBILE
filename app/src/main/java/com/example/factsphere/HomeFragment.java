@@ -1,6 +1,7 @@
 package com.example.factsphere;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +25,7 @@ public class HomeFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Pastikan menginflate layout yang benar (biasanya fragment_home)
+        // Pakai activity_home.xml dulu (karena sudah ada RecyclerView-nya)
         return inflater.inflate(R.layout.activity_home, container, false);
     }
 
@@ -42,17 +43,23 @@ public class HomeFragment extends Fragment {
 
         viewModel.getFactList().observe(getViewLifecycleOwner(), facts -> {
             if (facts != null) {
+                Log.d("HomeFragment", "✅ Data diterima: " + facts.size() + " items");
                 adapter.setData(facts);
             }
         });
 
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
+                Log.e("HomeFragment", "❌ Error: " + error);
                 Toast.makeText(getContext(), "Error: " + error, Toast.LENGTH_LONG).show();
             }
         });
 
-        // Pemicu: Ambil detail artikel spesifik untuk Home
-        viewModel.loadRandomFact();
+        Log.d("HomeFragment", "onViewCreated: Siap load data");
+
+        // === PENTING: Cegah pemanggilan berulang ===
+        if (savedInstanceState == null) {
+            viewModel.loadRandomFact();
+        }
     }
 }
