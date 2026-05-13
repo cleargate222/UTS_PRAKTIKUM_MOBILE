@@ -58,6 +58,8 @@
                     android:id="@+id/iv_save"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:src="@drawable/simpan"
                     android:padding="12dp"
                     android:background="?attr/selectableItemBackgroundBorderless"/>

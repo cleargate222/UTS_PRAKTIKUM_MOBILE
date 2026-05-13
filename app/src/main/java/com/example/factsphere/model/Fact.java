@@ -1,6 +1,9 @@
 package com.example.factsphere.model;
 
-public class Fact {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Fact implements Parcelable {
     private String id;
     private String title;
     private String shortFact;
@@ -10,10 +13,11 @@ public class Fact {
     private String wikipediaTitle;
     private boolean isFavorite;
 
+    // Tambahkan Konstruktor Kosong (Sangat penting untuk Firebase/Supabase jika digunakan)
     public Fact() {}
 
-    public Fact(String id, String title, String shortFact,
-                String category, String imageUrl, String wikipediaTitle) {
+    // Konstruktor Lengkap
+    public Fact(String id, String title, String shortFact, String category, String imageUrl, String wikipediaTitle) {
         this.id = id;
         this.title = title;
         this.shortFact = shortFact;
@@ -22,23 +26,48 @@ public class Fact {
         this.wikipediaTitle = wikipediaTitle;
     }
 
-    // Getters
-    public String getId()             { return id; }
-    public String getTitle()          { return title; }
-    public String getShortFact()      { return shortFact; }
-    public String getLongArticle()    { return longArticle; }
-    public String getCategory()       { return category; }
-    public String getImageUrl()       { return imageUrl; }
+    // --- METODE GETTER (Wajib ada untuk menghilangkan error di FactAdapter) ---
+    public String getId() { return id; }
+    public String getTitle() { return title; }
+    public String getShortFact() { return shortFact; }
+    public String getLongArticle() { return longArticle; }
+    public String getCategory() { return category; }
+    public String getImageUrl() { return imageUrl; }
     public String getWikipediaTitle() { return wikipediaTitle; }
-    public boolean isFavorite()       { return isFavorite; }
+    public boolean isFavorite() { return isFavorite; }
 
-    // Setters
-    public void setId(String id)                   { this.id = id; }
-    public void setTitle(String title)             { this.title = title; }
-    public void setShortFact(String shortFact)     { this.shortFact = shortFact; }
-    public void setLongArticle(String longArticle) { this.longArticle = longArticle; }
-    public void setCategory(String category)       { this.category = category; }
-    public void setImageUrl(String imageUrl)       { this.imageUrl = imageUrl; }
-    public void setWikipediaTitle(String title)    { this.wikipediaTitle = title; }
-    public void setFavorite(boolean favorite)      { this.isFavorite = favorite; }
+    // --- IMPLEMENTASI PARCELABLE (Tetap seperti kode Anda) ---
+    protected Fact(Parcel in) {
+        id = in.readString();
+        title = in.readString();
+        shortFact = in.readString();
+        longArticle = in.readString();
+        category = in.readString();
+        imageUrl = in.readString();
+        wikipediaTitle = in.readString();
+        // Membaca byte dan mengubahnya kembali menjadi boolean
+        isFavorite = in.readByte() != 0;
+    }
+
+    public static final Creator<Fact> CREATOR = new Creator<Fact>() {
+        @Override
+        public Fact createFromParcel(Parcel in) { return new Fact(in); }
+        @Override
+        public Fact[] newArray(int size) { return new Fact[size]; }
+    };
+
+    @Override
+    public int describeContents() { return 0; }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(title);
+        dest.writeString(shortFact);
+        dest.writeString(longArticle);
+        dest.writeString(category);
+        dest.writeString(imageUrl);
+        dest.writeString(wikipediaTitle);
+        dest.writeByte((byte) (isFavorite ? 1 : 0));
+    }
 }

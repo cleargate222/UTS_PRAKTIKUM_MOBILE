@@ -1,20 +1,18 @@
 package com.example.factsphere.viewmodel;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.factsphere.supabase.SupabaseClientProvider;
-
 import org.json.JSONObject;
-
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import android.content.Context;
-import android.content.SharedPreferences;
 
 public class AuthViewModel extends AndroidViewModel {
 
@@ -23,32 +21,38 @@ public class AuthViewModel extends AndroidViewModel {
     private final MutableLiveData<String>  currentUserEmail = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading        = new MutableLiveData<>(false);
 
-    // Simpan token setelah login
     private String accessToken = null;
-    // ... variabel lainnya tetap sama
     private final SharedPreferences sharedPreferences;
 
     public AuthViewModel(@NonNull Application application) {
         super(application);
-        // Inisialisasi SharedPreferences
+        // Tetap menggunakan "auth_prefs" agar konsisten
         sharedPreferences = application.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE);
 
-        // Ambil email yang tersimpan (jika ada) saat ViewModel dibuat
+        // 1. Ambil email DAN token yang tersimpan saat ViewModel dibuat
         String savedEmail = sharedPreferences.getString("user_email", null);
-        if (savedEmail != null) {
+        String savedToken = sharedPreferences.getString("access_token", null);
+
+        if (savedEmail != null && savedToken != null) {
+            this.accessToken = savedToken;
             currentUserEmail.setValue(savedEmail);
             isLoggedIn.setValue(true);
         }
     }
 
-
     public LiveData<Boolean> getIsLoggedIn()       { return isLoggedIn; }
     public LiveData<String>  getErrorMessage()     { return errorMessage; }
     public LiveData<String>  getCurrentUserEmail() { return currentUserEmail; }
     public LiveData<Boolean> getIsLoading()        { return isLoading; }
-    public String            getAccessToken()      { return accessToken; }
 
-    // Login dengan Email + Password
+    // 2. Sesuaikan getter agar selalu mengecek SharedPreferences jika variabel null
+    public String getAccessToken() {
+        if (accessToken == null) {
+            accessToken = sharedPreferences.getString("access_token", null);
+        }
+        return accessToken;
+    }
+
     public void login(String email, String password) {
         if (email.isEmpty() || password.isEmpty()) {
             errorMessage.setValue("Email dan password tidak boleh kosong");
@@ -80,8 +84,11 @@ public class AuthViewModel extends AndroidViewModel {
                 if (response.isSuccessful()) {
                     accessToken = json.getString("access_token");
 
-                    // SIMPAN EMAIL KE PREFERENCES
-                    sharedPreferences.edit().putString("user_email", email).apply();
+                    // 3. SIMPAN TOKEN DAN EMAIL KE PREFERENCES
+                    sharedPreferences.edit()
+                            .putString("user_email", email)
+                            .putString("access_token", accessToken)
+                            .apply();
 
                     isLoggedIn.postValue(true);
                     currentUserEmail.postValue(email);
@@ -89,9 +96,7 @@ public class AuthViewModel extends AndroidViewModel {
                     String msg = json.optString("error_description", "Login gagal");
                     errorMessage.postValue(msg);
                 }
-
                 isLoading.postValue(false);
-
             } catch (Exception e) {
                 errorMessage.postValue("Login gagal: " + e.getMessage());
                 isLoading.postValue(false);
@@ -99,7 +104,6 @@ public class AuthViewModel extends AndroidViewModel {
         }).start();
     }
 
-    // Register dengan Email + Password
     public void register(String email, String password) {
         if (email.isEmpty() || password.isEmpty()) {
             errorMessage.setValue("Email dan password tidak boleh kosong");
@@ -129,16 +133,23 @@ public class AuthViewModel extends AndroidViewModel {
                 JSONObject json = new JSONObject(responseBody);
 
                 if (response.isSuccessful()) {
+                    // Jika signup langsung memberikan token
                     accessToken = json.optString("access_token", null);
+
+                    if (accessToken != null) {
+                        sharedPreferences.edit()
+                                .putString("user_email", email)
+                                .putString("access_token", accessToken)
+                                .apply();
+                    }
+
                     isLoggedIn.postValue(true);
                     currentUserEmail.postValue(email);
                 } else {
                     String msg = json.optString("error_description", "Register gagal");
                     errorMessage.postValue(msg);
                 }
-
                 isLoading.postValue(false);
-
             } catch (Exception e) {
                 errorMessage.postValue("Register gagal: " + e.getMessage());
                 isLoading.postValue(false);
@@ -146,27 +157,26 @@ public class AuthViewModel extends AndroidViewModel {
         }).start();
     }
 
-    // Logout
     public void logout() {
         isLoading.setValue(true);
-
         new Thread(() -> {
             try {
-                Request request = SupabaseClientProvider
-                        .baseRequest("/auth/v1/logout")
-                        .addHeader("Authorization", "Bearer " + accessToken)
-                        .post(RequestBody.create("", SupabaseClientProvider.JSON))
-                        .build();
-
-                SupabaseClientProvider.getClient().newCall(request).execute();
-
-                accessToken = null;
-                isLoggedIn.postValue(false);
-                currentUserEmail.postValue(null);
-                isLoading.postValue(false);
-
+                if (getAccessToken() != null) {
+                    Request request = SupabaseClientProvider
+                            .baseRequest("/auth/v1/logout")
+                            .addHeader("Authorization", "Bearer " + getAccessToken())
+                            .post(RequestBody.create("", SupabaseClientProvider.JSON))
+                            .build();
+                    SupabaseClientProvider.getClient().newCall(request).execute();
+                }
             } catch (Exception e) {
-                errorMessage.postValue("Logout gagal: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                // 4. Bersihkan SharedPreferences saat logout
+                sharedPreferences.edit().clear().apply();
+                accessToken = null;
+                currentUserEmail.postValue(null);
+                isLoggedIn.postValue(false);
                 isLoading.postValue(false);
             }
         }).start();

@@ -1,5 +1,6 @@
 package com.example.factsphere;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -67,11 +68,26 @@ public class ProfileFragment extends Fragment {
             btnLogout.setOnClickListener(v -> {
                 authViewModel.logout();
                 Toast.makeText(getContext(), "Logout berhasil", Toast.LENGTH_SHORT).show();
-
-                // Kembali ke LoginActivity dan bersihkan tumpukan activity
-                requireActivity().finishAffinity();
+                // 1. Panggil fungsi logout di ViewModel
+                authViewModel.logout();
             });
         }
+
+        // 2. Observasi status login. Jika berubah jadi false, arahkan ke Login
+        authViewModel.getIsLoggedIn().observe(getViewLifecycleOwner(), isLoggedIn -> {
+            if (!isLoggedIn) {
+                Toast.makeText(getContext(), "Logout berhasil", Toast.LENGTH_SHORT).show();
+
+                // Redirect ke LoginActivity
+                Intent intent = new Intent(requireActivity(), LoginActivity.class);
+
+                // Flag ini penting untuk menghapus semua tumpukan Activity sebelumnya
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+                startActivity(intent);
+                requireActivity().finish();
+            }
+        });
 
         return view;
     }

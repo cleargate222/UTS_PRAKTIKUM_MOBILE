@@ -1,5 +1,6 @@
 package com.example.factsphere;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.factsphere.viewmodel.AuthViewModel;
 import com.example.factsphere.viewmodel.FactViewModel;
 
 public class HomeFragment extends Fragment {
@@ -21,6 +23,7 @@ public class HomeFragment extends Fragment {
     private RecyclerView recyclerFeed;
     private FactAdapter adapter; // Deklarasikan di sini
     private FactViewModel viewModel;
+    private AuthViewModel authViewModel; // TAMBAHKAN INI
 
     @Nullable
     @Override
@@ -40,10 +43,11 @@ public class HomeFragment extends Fragment {
         recyclerFeed.setAdapter(adapter);
 
         viewModel = new ViewModelProvider(this).get(FactViewModel.class);
+        authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         viewModel.getFactList().observe(getViewLifecycleOwner(), facts -> {
             if (facts != null) {
-                Log.d("HomeFragment", "✅ Data diterima: " + facts.size() + " items");
+                Log.d("HomeFragment", "Observer menerima " + facts.size() + " data");
                 adapter.setData(facts);
             }
         });
@@ -59,7 +63,28 @@ public class HomeFragment extends Fragment {
 
         // === PENTING: Cegah pemanggilan berulang ===
         if (savedInstanceState == null) {
-            viewModel.loadRandomFact();
+            viewModel.loadMultipleFacts("Indonesia"); // Sekarang akan muncul 15 data berturut-turut!
         }
+
+        // Alur Klik: Pindah ke Detail Activity
+        adapter.setOnItemClickCallback(fact -> {
+            Intent intent = new Intent(getActivity(), FactDetailActivity.class);
+
+            // Ambil Token dan Email dari ViewModel
+            String token = authViewModel.getAccessToken();
+            String email = null;
+            if (authViewModel.getCurrentUserEmail() != null && authViewModel.getCurrentUserEmail().getValue() != null) {
+                email = authViewModel.getCurrentUserEmail().getValue();
+            }
+
+            Log.d("FAVORITE_DEBUG", "HOME -> Mengirim Token: " + token);
+            Log.d("FAVORITE_DEBUG", "HOME -> Mengirim Email: " + email);
+
+            intent.putExtra("EXTRA_FACT", fact);
+            intent.putExtra("EXTRA_TOKEN", token);
+            intent.putExtra("EXTRA_EMAIL", email);
+
+            startActivity(intent);
+        });
     }
 }
