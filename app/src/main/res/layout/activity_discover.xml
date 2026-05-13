@@ -27,6 +27,8 @@
             android:id="@+id/et_search"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="text"
+            android:imeOptions="actionSearch"
             android:hint="Search facts"
             android:drawableStart="@drawable/ic_search"
             android:drawablePadding="12dp"

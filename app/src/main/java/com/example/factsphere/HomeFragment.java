@@ -43,7 +43,7 @@ public class HomeFragment extends Fragment {
 
         viewModel.getFactList().observe(getViewLifecycleOwner(), facts -> {
             if (facts != null) {
-                Log.d("HomeFragment", "✅ Data diterima: " + facts.size() + " items");
+                Log.d("HomeFragment", "Observer menerima " + facts.size() + " data");
                 adapter.setData(facts);
             }
         });
@@ -59,7 +59,7 @@ public class HomeFragment extends Fragment {
 
         // === PENTING: Cegah pemanggilan berulang ===
         if (savedInstanceState == null) {
-            viewModel.loadRandomFact();
+            viewModel.loadMultipleFacts("Indonesia"); // Sekarang akan muncul 15 data berturut-turut!
         }
     }
 }

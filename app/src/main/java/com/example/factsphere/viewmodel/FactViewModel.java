@@ -1,100 +1,71 @@
 package com.example.factsphere.viewmodel;
 
 import android.app.Application;
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
 import com.example.factsphere.model.Fact;
 import com.example.factsphere.repository.FactRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class FactViewModel extends AndroidViewModel {
-
     private final FactRepository repository;
 
-    private final MutableLiveData<List<Fact>> factList     = new MutableLiveData<>();
-    private final MutableLiveData<Fact>randomFact = new MutableLiveData<>();
-    private final MutableLiveData<Boolean>    isLoading    = new MutableLiveData<>(false);
-    private final MutableLiveData<String>     errorMessage = new MutableLiveData<>();
+    // LiveData yang dipanggil di HomeFragment
+    private final MutableLiveData<List<Fact>> factList = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
 
     public FactViewModel(@NonNull Application application) {
         super(application);
         repository = new FactRepository();
     }
 
-    public LiveData<List<Fact>> getFactList()     { return factList; }
-    public LiveData<Fact> getRandomFact()     { return randomFact; }
-    public LiveData<Boolean>    getIsLoading()    { return isLoading; }
-    public LiveData<String>     getErrorMessage() { return errorMessage; }
+    // Getter untuk dipanggil di Fragment (Baris 43 & 51 di image_9c0546.jpg)
+    public LiveData<List<Fact>> getFactList() { return factList; }
+    public LiveData<String> getErrorMessage() { return errorMessage; }
+    public LiveData<Boolean> getIsLoading() { return isLoading; }
 
-    public void loadFact(String title) {
+    public void loadMultipleFacts(String query) {
         isLoading.setValue(true);
+        List<Fact> currentList = new ArrayList<>();
 
-        repository.getArticleDetail(title, new FactRepository.ArticleCallback() {
+        repository.searchArticles(query, 15, new FactRepository.SearchCallback() {
             @Override
-            public void onSuccess(String shortFact, String longArticle, String imageUrl, String articleUrl) {
-                isLoading.postValue(false);
+            public void onSuccess(List<String> titles) {
+                if (titles.isEmpty()) {
+                    isLoading.postValue(false);
+                    errorMessage.postValue("Tidak ada data ditemukan.");
+                    return;
+                }
 
-                // Kita bungkus data yang didapat ke dalam list agar bisa diterima FactAdapter
-                List<Fact> facts = new ArrayList<>();
-                facts.add(new Fact(
-                        UUID.randomUUID().toString(),
-                        title,       // Judul
-                        shortFact,   // Isi Ringkas
-                        "Featured",  // Kategori
-                        imageUrl,    // Gambar (Sudah tidak null lagi!)
-                        title        // Wikipedia ID
-                ));
+                for (String title : titles) {
+                    repository.getArticleDetail(title, new FactRepository.ArticleCallback() {
+                        @Override
+                        public void onSuccess(String shortFact, String longArticle, String imageUrl, String articleUrl) {
+                            currentList.add(new Fact(UUID.randomUUID().toString(), title, shortFact, "Discovery", imageUrl, title));
 
-                factList.postValue(facts);
-            }
+                            // Update list ke UI
+                            factList.postValue(new ArrayList<>(currentList));
 
-            @Override
-            public void onFailure(String Message) {
-                isLoading.postValue(false);
-                errorMessage.postValue(Message);
-            }
-        });
-    }
+                            if (currentList.size() >= titles.size()) {
+                                isLoading.postValue(false);
+                            }
+                        }
 
-    // Untuk Fact of the Day di Home
-    public void loadRandomFact() {
-        // Cegah multiple call
-        if (Boolean.TRUE.equals(isLoading.getValue())) {
-            Log.d("FactViewModel", "Sedang loading, skip panggilan baru");
-            return;
-        }
-
-        isLoading.setValue(true);
-        Log.d("FactViewModel", "🚀 loadRandomFact dipanggil");
-
-        List<String> trendingTopics = new ArrayList<>();
-        trendingTopics.add("Indonesia");
-        trendingTopics.add("Matahari");
-        trendingTopics.add("Dinosaurus");
-        trendingTopics.add("Gunung_Everest");
-        trendingTopics.add("Albert_Einstein");
-
-        repository.getMultipleArticles(trendingTopics, new FactRepository.FactCallback() {
-            @Override
-            public void onSuccess(List<Fact> facts) {
-                Log.d("FactViewModel", "✅ SUCCESS: " + (facts != null ? facts.size() : 0) + " facts");
-                isLoading.postValue(false);
-                if (facts != null && !facts.isEmpty()) {
-                    factList.postValue(facts);
+                        @Override
+                        public void onFailure(String message) {
+                            // Jika satu detail gagal, kita biarkan yang lain tetap jalan
+                        }
+                    });
                 }
             }
 
             @Override
             public void onFailure(String message) {
-                Log.e("FactViewModel", "❌ FAILED: " + message);
                 isLoading.postValue(false);
                 errorMessage.postValue(message);
             }
