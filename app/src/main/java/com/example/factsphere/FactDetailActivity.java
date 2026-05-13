@@ -1,7 +1,5 @@
 package com.example.factsphere;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
@@ -13,11 +11,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.example.factsphere.model.Fact;
-import com.example.factsphere.viewmodel.AuthViewModel;
 import com.example.factsphere.viewmodel.FavoriteViewModel;
 import com.google.android.material.button.MaterialButton;
 
 public class FactDetailActivity extends AppCompatActivity {
+
     private ImageView ivSave;
     private FavoriteViewModel favoriteViewModel;
 
@@ -26,56 +24,69 @@ public class FactDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fact_detail);
 
-        // 1. Inisialisasi View
+        // Inisialisasi View
         ImageView ivDetailImage = findViewById(R.id.iv_detail_image);
-        TextView tvTitle = findViewById(R.id.tv_title);
-        TextView tvLongArticle = findViewById(R.id.tv_long_article);
-        MaterialButton btnSource = findViewById(R.id.btn_visit_source);
-        ivSave = findViewById(R.id.iv_save);
+        TextView  tvTitle       = findViewById(R.id.tv_title);
+        TextView  tvLongArticle = findViewById(R.id.tv_long_article);
+        ivSave                  = findViewById(R.id.iv_save);
 
-        // 2. Inisialisasi ViewModel
-        favoriteViewModel = new ViewModelProvider(this).get(FavoriteViewModel.class);
+        // Inisialisasi ViewModel
+        favoriteViewModel = new ViewModelProvider(this)
+                .get(FavoriteViewModel.class);
 
-        // 3. Ambil data dari Intent
-        Fact fact = getIntent().getParcelableExtra("EXTRA_FACT");
-        String token = getIntent().getStringExtra("EXTRA_TOKEN");
+        // Ambil data dari Intent
+        Fact   fact      = getIntent().getParcelableExtra("EXTRA_FACT");
+        String token     = getIntent().getStringExtra("EXTRA_TOKEN");
         String userEmail = getIntent().getStringExtra("EXTRA_EMAIL");
 
-        Log.d("FAVORITE_DEBUG", "DETAIL -> Menerima Token: " + token);
-        Log.d("FAVORITE_DEBUG", "DETAIL -> Menerima Email: " + userEmail);
+        Log.d("FAVORITE_DEBUG", "Token: " + token);
+        Log.d("FAVORITE_DEBUG", "Email: " + userEmail);
 
-        if (fact != null) {
-            tvTitle.setText(fact.getTitle());
-            tvLongArticle.setText(fact.getShortFact());
-            Glide.with(this).load(fact.getImageUrl()).into(ivDetailImage);
+        if (fact == null) return;
 
-            // Cek kondisi Login
-            if (token != null && userEmail != null && !token.isEmpty()) {
-                // Muat data favorit
-                favoriteViewModel.loadFavorites(userEmail, token);
+        // Tampilkan data
+        tvTitle.setText(fact.getTitle());
+        tvLongArticle.setText(fact.getShortFact());
+        Glide.with(this).load(fact.getImageUrl()).into(ivDetailImage);
 
-                // Update ikon secara otomatis
-                favoriteViewModel.getFavorites().observe(this, list -> {
-                    if (favoriteViewModel.isFavorite(fact.getId())) {
-                        ivSave.setColorFilter(getResources().getColor(R.color.primary));
-                    } else {
-                        ivSave.setColorFilter(null);
-                    }
-                });
+        if (token != null && userEmail != null && !token.isEmpty()) {
 
-                ivSave.setOnClickListener(v -> {
-                    favoriteViewModel.toggleFavorite(userEmail, token, fact);
-                    // Feedback langsung
-                    boolean isCurrentlyFav = favoriteViewModel.isFavorite(fact.getId());
-                    Toast.makeText(this, isCurrentlyFav ? "Dihapus" : "Disimpan", Toast.LENGTH_SHORT).show();
-                });
-            } else {
-                // Jika Token Null, arahkan user untuk login
-                ivSave.setOnClickListener(v -> {
-                    Log.e("FAVORITE_DEBUG", "Klik ditolak karena Token NULL");
-                    Toast.makeText(this, "Sesi berakhir, silakan login kembali", Toast.LENGTH_SHORT).show();
-                });
-            }
+            // Load favorites dulu agar isFavorite() akurat
+            favoriteViewModel.loadFavorites(userEmail, token);
+
+            // Update icon saat favoriteList berubah
+            favoriteViewModel.getFavorites().observe(this, list -> {
+                updateBookmarkIcon(fact.getId());
+            });
+
+            // Observe toast dari ViewModel (lebih akurat)
+            favoriteViewModel.getToastMessage().observe(this, msg -> {
+                if (msg != null) {
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            // Klik bookmark
+            ivSave.setOnClickListener(v -> {
+                favoriteViewModel.toggleFavorite(userEmail, token, fact);
+            });
+
+        } else {
+            ivSave.setOnClickListener(v -> {
+                Toast.makeText(this,
+                        "Sesi berakhir, silakan login kembali",
+                        Toast.LENGTH_SHORT).show();
+            });
+        }
+    }
+
+    // Update icon bookmark sesuai status
+    private void updateBookmarkIcon(String factId) {
+        if (favoriteViewModel.isFavorite(factId)) {
+            ivSave.setColorFilter(
+                    getResources().getColor(R.color.primary));
+        } else {
+            ivSave.clearColorFilter();
         }
     }
 }

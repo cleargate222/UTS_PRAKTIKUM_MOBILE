@@ -1,7 +1,6 @@
 package com.example.factsphere.viewmodel;
 
 import android.app.Application;
-import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -25,6 +24,7 @@ public class FavoriteViewModel extends AndroidViewModel {
     private final MutableLiveData<List<Fact>> favoriteList = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<String>     errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean>    isLoading    = new MutableLiveData<>(false);
+    private final MutableLiveData<String>     toastMessage = new MutableLiveData<>();
 
     public FavoriteViewModel(@NonNull Application application) {
         super(application);
@@ -33,125 +33,152 @@ public class FavoriteViewModel extends AndroidViewModel {
     public LiveData<List<Fact>> getFavorites()    { return favoriteList; }
     public LiveData<String>     getErrorMessage() { return errorMessage; }
     public LiveData<Boolean>    getIsLoading()    { return isLoading; }
+    public LiveData<String>     getToastMessage() { return toastMessage; }
 
-    public void loadFavorites(String userEmail, String accessToken) {
-        if (accessToken == null || userEmail == null) return;
+    // Load semua favorites dari Supabase
+    public void loadFavorites(String userId, String accessToken) {
+        if (userId == null || accessToken == null) return;
         isLoading.setValue(true);
+
         new Thread(() -> {
             try {
-                String encodedEmail = userEmail.replace("@", "%40");
                 Request request = SupabaseClientProvider
-                        .baseRequest("/rest/v1/favorites?user_id=eq." + encodedEmail + "&select=*")
+                        .baseRequest("/rest/v1/favorites?user_id=eq."
+                                + userId + "&select=*")
                         .addHeader("Authorization", "Bearer " + accessToken)
                         .get()
                         .build();
 
-                Response response = SupabaseClientProvider.getClient().newCall(request).execute();
-                String responseBody = response.body() != null ? response.body().string() : "[]";
+                Response response = SupabaseClientProvider
+                        .getClient().newCall(request).execute();
+
+                String body = response.body().string();
+                android.util.Log.d("FAVORITE_DEBUG",
+                        "loadFavorites response: " + body);
 
                 if (response.isSuccessful()) {
-                    JSONArray array = new JSONArray(responseBody);
+                    JSONArray array = new JSONArray(body);
                     List<Fact> facts = new ArrayList<>();
+
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject obj = array.getJSONObject(i);
-                        facts.add(new Fact(
+                        Fact fact = new Fact(
                                 obj.getString("fact_id"),
                                 obj.getString("title"),
                                 obj.getString("short_fact"),
-                                // Tetap set kosong karena kolom tidak ada di DB
+                                "Umum",
                                 "",
-                                obj.getString("category"),
-                                ""
-                        ));
+                                obj.getString("title")
+                        );
+                        fact.setFavorite(true);
+                        facts.add(fact);
                     }
                     favoriteList.postValue(facts);
+                } else {
+                    errorMessage.postValue("Gagal load: " + body);
                 }
                 isLoading.postValue(false);
+
             } catch (Exception e) {
-                errorMessage.postValue("Gagal memuat: " + e.getMessage());
+                errorMessage.postValue("Error: " + e.getMessage());
                 isLoading.postValue(false);
             }
         }).start();
     }
 
-    public void addFavorite(String userEmail, String accessToken, Fact fact) {
-        if (accessToken == null) {
-            Log.e("SUPABASE_ERROR", "Token null, gagal simpan");
-            return;
-        }
-
+    // Tambah favorite ke Supabase
+    public void addFavorite(String userId, String accessToken, Fact fact) {
         new Thread(() -> {
             try {
-                // HANYA mengirim kolom yang pasti ada di tabel favorites kamu
                 JSONObject body = new JSONObject();
-                body.put("user_id", userEmail);
-                body.put("fact_id", fact.getId());
-                body.put("title", fact.getTitle());
+                body.put("user_id",    userId);
+                body.put("fact_id",    fact.getId());
+                body.put("title",      fact.getTitle());
                 body.put("short_fact", fact.getShortFact());
-                body.put("category", fact.getCategory());
-                // Baris image_url sudah dihapus sesuai permintaan
+                body.put("category",   fact.getCategory() != null
+                        ? fact.getCategory() : "Umum");
 
-                RequestBody requestBody = RequestBody.create(body.toString(), SupabaseClientProvider.JSON);
-
-                Request request = SupabaseClientProvider.baseRequest("/rest/v1/favorites")
+                Request request = SupabaseClientProvider
+                        .baseRequest("/rest/v1/favorites")
                         .addHeader("Authorization", "Bearer " + accessToken)
                         .addHeader("Prefer", "return=minimal")
-                        .post(requestBody)
+                        .post(RequestBody.create(
+                                body.toString(),
+                                SupabaseClientProvider.JSON))
                         .build();
 
-                Response response = SupabaseClientProvider.getClient().newCall(request).execute();
+                Response response = SupabaseClientProvider
+                        .getClient().newCall(request).execute();
+
+                android.util.Log.d("FAVORITE_DEBUG",
+                        "addFavorite status: " + response.code());
 
                 if (response.isSuccessful()) {
-                    Log.d("SUPABASE_SUCCESS", "Data tersimpan tanpa image_url");
-                    List<Fact> current = favoriteList.getValue();
-                    List<Fact> updated = new ArrayList<>(current != null ? current : new ArrayList<>());
-                    updated.add(fact);
-                    favoriteList.postValue(updated);
+                    // Update list lokal
+                    List<Fact> current = new ArrayList<>(
+                            favoriteList.getValue() != null
+                                    ? favoriteList.getValue() : new ArrayList<>());
+                    fact.setFavorite(true);
+                    current.add(fact);
+                    favoriteList.postValue(current);
+                    toastMessage.postValue("Disimpan ke favorit ❤️");
                 } else {
-                    String errorLog = response.body() != null ? response.body().string() : "No error body";
-                    Log.e("SUPABASE_ERROR", "Status: " + response.code() + " | Detail: " + errorLog);
-                    errorMessage.postValue("Gagal menyimpan ke database");
+                    String respBody = response.body().string();
+                    android.util.Log.e("FAVORITE_DEBUG",
+                            "addFavorite error: " + respBody);
+                    errorMessage.postValue("Gagal menyimpan");
                 }
+
             } catch (Exception e) {
-                Log.e("SUPABASE_CRASH", e.getMessage());
+                errorMessage.postValue("Error: " + e.getMessage());
             }
         }).start();
     }
 
-    public void removeFavorite(String userEmail, String accessToken, String factId) {
+    // Hapus favorite dari Supabase
+    public void removeFavorite(String userId, String accessToken, String factId) {
         new Thread(() -> {
             try {
-                String encodedEmail = userEmail.replace("@", "%40");
                 Request request = SupabaseClientProvider
-                        .baseRequest("/rest/v1/favorites?user_id=eq." + encodedEmail + "&fact_id=eq." + factId)
+                        .baseRequest("/rest/v1/favorites?user_id=eq."
+                                + userId + "&fact_id=eq." + factId)
                         .addHeader("Authorization", "Bearer " + accessToken)
                         .delete()
                         .build();
 
-                Response response = SupabaseClientProvider.getClient().newCall(request).execute();
+                Response response = SupabaseClientProvider
+                        .getClient().newCall(request).execute();
+
+                android.util.Log.d("FAVORITE_DEBUG",
+                        "removeFavorite status: " + response.code());
+
                 if (response.isSuccessful()) {
-                    List<Fact> current = favoriteList.getValue();
-                    if (current == null) return;
-                    List<Fact> updated = new ArrayList<>();
-                    for (Fact f : current) {
-                        if (!f.getId().equals(factId)) updated.add(f);
-                    }
-                    favoriteList.postValue(updated);
+                    List<Fact> current = new ArrayList<>(
+                            favoriteList.getValue() != null
+                                    ? favoriteList.getValue() : new ArrayList<>());
+                    current.removeIf(f -> f.getId().equals(factId));
+                    favoriteList.postValue(current);
+                    toastMessage.postValue("Dihapus dari favorit");
+                } else {
+                    errorMessage.postValue("Gagal menghapus");
                 }
+
             } catch (Exception e) {
-                Log.e("SUPABASE_ERROR", "Gagal hapus: " + e.getMessage());
+                errorMessage.postValue("Error: " + e.getMessage());
             }
         }).start();
     }
 
-    public void toggleFavorite(String userEmail, String accessToken, Fact fact) {
+    // Toggle favorite
+    public void toggleFavorite(String userId, String accessToken, Fact fact) {
         if (isFavorite(fact.getId())) {
-            removeFavorite(userEmail, accessToken, fact.getId());
+            removeFavorite(userId, accessToken, fact.getId());
         } else {
-            addFavorite(userEmail, accessToken, fact);
+            addFavorite(userId, accessToken, fact);
         }
     }
 
+    // Cek status favorite
     public boolean isFavorite(String factId) {
         List<Fact> current = favoriteList.getValue();
         if (current == null) return false;

@@ -13,40 +13,37 @@ public class Fact implements Parcelable {
     private String wikipediaTitle;
     private boolean isFavorite;
 
-    // Tambahkan Konstruktor Kosong (Sangat penting untuk Firebase/Supabase jika digunakan)
     public Fact() {}
 
-    // Konstruktor Lengkap
-    public Fact(String id, String title, String shortFact, String category, String imageUrl, String wikipediaTitle) {
-        this.id = id;
-        this.title = title;
-        this.shortFact = shortFact;
-        this.category = category;
-        this.imageUrl = imageUrl;
+    public Fact(String id, String title, String shortFact,
+                String category, String imageUrl, String wikipediaTitle) {
+        this.id             = id;
+        this.title          = title;
+        this.shortFact      = shortFact;
+        this.category       = category;
+        this.imageUrl       = imageUrl;
         this.wikipediaTitle = wikipediaTitle;
     }
 
-    // --- METODE GETTER (Wajib ada untuk menghilangkan error di FactAdapter) ---
-    public String getId() { return id; }
-    public String getTitle() { return title; }
-    public String getShortFact() { return shortFact; }
-    public String getLongArticle() { return longArticle; }
-    public String getCategory() { return category; }
-    public String getImageUrl() { return imageUrl; }
-    public String getWikipediaTitle() { return wikipediaTitle; }
-    public boolean isFavorite() { return isFavorite; }
+    public String  getId()             { return id; }
+    public String  getTitle()          { return title; }
+    public String  getShortFact()      { return shortFact; }
+    public String  getLongArticle()    { return longArticle; }
+    public String  getCategory()       { return category; }
+    public String  getImageUrl()       { return imageUrl; }
+    public String  getWikipediaTitle() { return wikipediaTitle; }
+    public boolean isFavorite()        { return isFavorite; }
+    public void    setFavorite(boolean favorite) { isFavorite = favorite; }
 
-    // --- IMPLEMENTASI PARCELABLE (Tetap seperti kode Anda) ---
     protected Fact(Parcel in) {
-        id = in.readString();
-        title = in.readString();
-        shortFact = in.readString();
-        longArticle = in.readString();
-        category = in.readString();
-        imageUrl = in.readString();
+        id             = in.readString();
+        title          = in.readString();
+        shortFact      = in.readString();
+        longArticle    = in.readString();
+        category       = in.readString();
+        imageUrl       = in.readString();
         wikipediaTitle = in.readString();
-        // Membaca byte dan mengubahnya kembali menjadi boolean
-        isFavorite = in.readByte() != 0;
+        isFavorite     = in.readByte() != 0;
     }
 
     public static final Creator<Fact> CREATOR = new Creator<Fact>() {
@@ -56,8 +53,7 @@ public class Fact implements Parcelable {
         public Fact[] newArray(int size) { return new Fact[size]; }
     };
 
-    @Override
-    public int describeContents() { return 0; }
+    @Override public int describeContents() { return 0; }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {

@@ -39,7 +39,7 @@ public class FavoritesFragment extends Fragment {
 
         // 3. Inisialisasi ViewModel
         // Gunakan requireActivity() agar AuthViewModel sinkron dengan session login di MainActivity
-        favoriteViewModel = new ViewModelProvider(this).get(FavoriteViewModel.class);
+        favoriteViewModel = new ViewModelProvider(requireActivity()).get(FavoriteViewModel.class);
         authViewModel = new ViewModelProvider(requireActivity()).get(AuthViewModel.class);
 
         // PERBAIKAN: Kirim Token & Email juga saat klik dari halaman Favorite
