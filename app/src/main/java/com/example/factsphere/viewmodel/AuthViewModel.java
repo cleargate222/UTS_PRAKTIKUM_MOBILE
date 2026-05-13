@@ -13,6 +13,8 @@ import org.json.JSONObject;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 public class AuthViewModel extends AndroidViewModel {
 
@@ -23,10 +25,22 @@ public class AuthViewModel extends AndroidViewModel {
 
     // Simpan token setelah login
     private String accessToken = null;
+    // ... variabel lainnya tetap sama
+    private final SharedPreferences sharedPreferences;
 
     public AuthViewModel(@NonNull Application application) {
         super(application);
+        // Inisialisasi SharedPreferences
+        sharedPreferences = application.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE);
+
+        // Ambil email yang tersimpan (jika ada) saat ViewModel dibuat
+        String savedEmail = sharedPreferences.getString("user_email", null);
+        if (savedEmail != null) {
+            currentUserEmail.setValue(savedEmail);
+            isLoggedIn.setValue(true);
+        }
     }
+
 
     public LiveData<Boolean> getIsLoggedIn()       { return isLoggedIn; }
     public LiveData<String>  getErrorMessage()     { return errorMessage; }
@@ -65,6 +79,10 @@ public class AuthViewModel extends AndroidViewModel {
 
                 if (response.isSuccessful()) {
                     accessToken = json.getString("access_token");
+
+                    // SIMPAN EMAIL KE PREFERENCES
+                    sharedPreferences.edit().putString("user_email", email).apply();
+
                     isLoggedIn.postValue(true);
                     currentUserEmail.postValue(email);
                 } else {

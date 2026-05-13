@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.example.factsphere.viewmodel.AuthViewModel;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -13,6 +16,9 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etEmail, etPassword;
     private MaterialButton btnLogin, btnGoogle;
     private TextView tvRegister;
+
+    // ... variabel view yang sudah ada
+    private AuthViewModel authViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,23 +32,30 @@ public class LoginActivity extends AppCompatActivity {
         btnGoogle = findViewById(R.id.btn_google);
         tvRegister = findViewById(R.id.tv_register);
 
-        // Tombol Login Email
-        btnLogin.setOnClickListener(v -> {
-            String email = etEmail.getText().toString().trim();
-            String password = etPassword.getText().toString().trim();
-
-            if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Email dan Password tidak boleh kosong", Toast.LENGTH_SHORT).show();
-            } else {
-                // Tampilkan loading sebentar jika perlu
-                Toast.makeText(this, "Login berhasil", Toast.LENGTH_SHORT).show();
-
+        // Observasi hasil login dari ViewModel
+        AuthViewModel authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
+        authViewModel.getIsLoggedIn().observe(this, isLoggedIn -> {
+            if (isLoggedIn) {
+                Toast.makeText(this, "Login Berhasil!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                // Tambahkan flag agar MainActivity bersih saat dibuka
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 finish();
             }
+        });
+
+        authViewModel.getErrorMessage().observe(this, error -> {
+            if (error != null) {
+                Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        btnLogin.setOnClickListener(v -> {
+            String email = etEmail.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
+
+            // Panggil method login dari ViewModel
+            authViewModel.login(email, password);
         });
 
         // Tombol Login Google
